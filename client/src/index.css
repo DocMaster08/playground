@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-felt: #1a5c2e;
+  --color-felt-dark: #134422;
+  --color-card-red: #ef4444;
+  --color-card-black: #191919;
+  --font-mono: 'JetBrains ', 'Fira Code', monospace;
+  --font-sans: 'DM Sans', sans-serif;
+
+  --color-base: #ffffff;
+  --color-base-foreground: #000000;
+  --color-primary: #ff3333;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #ffff00;
+  --color-secondary-foreground: #000000;
+  --color-accent: #0066ff;
+  --color-accent-foreground: #ffffff;
+}

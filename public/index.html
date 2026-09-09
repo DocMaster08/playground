@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Playground</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #0f1117;
+            color: #e4e6ef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #8b8fa3;
+            margin-bottom: 2rem;
+        }
+
+        /* ── Screens ── */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* ── Forms ── */
+        input,
+        button {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #2e3347;
+            background: #1a1d27;
+            color: #e4e6ef;
+            font-family: inherit;
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: #7c6aef;
+        }
+
+        button {
+            background: #7c6aef;
+            border-color: #7c6aef;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background: #6a58d6;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #242836;
+            border-color: #2e3347;
+            color: #e4e6ef;
+        }
+
+        .btn-secondary:hover {
+            background: #2e3347;
+        }
+
+        .divider {
+            text-align: center;
+            color: #8b8fa3;
+            margin: 0.5rem 0;
+            font-size: 0.85rem;
+        }
+
+        /* ── Room code display ── */
+        .room-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-align: center;
+            color: #7c6aef;
+            background: rgba(124, 106, 239, 0.08);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(124, 106, 239, 0.2);
+            margin-bottom: 1rem;
+        }
+
+        /* ── Player list ── */
+        .player-list {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .player-list li {
+            padding: 0.5rem 0.75rem;
+            background: #1a1d27;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .player-list li.you {
+            background: #1a271d;
+        }
+
+        .player-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34d399;
+        }
+
+        /* ── Chat ── */
+        .chat-messages {
+            background: #1a1d27;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            max-height: 200px;
+            min-height: 100px;
+            overflow-y: auto;
+            margin-bottom: 0.75rem;
+            font-size: 0.85rem;
+            position: relative;
+        }
+
+        .typing {
+            position: absolute;
+            bottom: 5px;
+            padding: 0.3rem;
+            font-size: 0.7rem;
+            color: #9699a9;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .typing.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .chat-msg {
+            margin-bottom: 0.5rem;
+            animation: slideIn 0.2s ease-out;
+        }
+
+        .chat-msg .author {
+            color: #7c6aef;
+            font-weight: 600;
+        }
+
+        .chat-msg .system {
+            color: #8b8fa3;
+            font-style: italic;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .chat-input-row button {
+            width: auto;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 0;
+        }
+
+        .error-msg {
+            color: #f87171;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .label {
+            font-size: 0.8rem;
+            color: #8b8fa3;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- ═══ Screen 1: Enter Name ═══ -->
+        <div class="screen active" id="screenName">
+            <h1>🎮 Playground</h1>
+            <p class="subtitle">Enter your name to get started.</p>
+            <input type="text" id="inputName" placeholder="Your name" maxlength="20" autofocus>
+            <button id="btnCreate">Create Room</button>
+            <div class="divider">or join an existing room</div>
+            <input type="text" id="inputCode" placeholder="Room code (e.g. ABCD)" maxlength="4"
+                style="text-transform:uppercase; letter-spacing:0.2em; text-align:center;">
+            <button id="btnJoin" class="btn-secondary">Join Room</button>
+            <p class="error-msg" id="errorMsg"></p>
+        </div>
+
+        <!-- ═══ Screen 2: Lobby ═══ -->
+        <div class="screen" id="screenLobby">
+            <p class="label">Room Code</p>
+            <div class="room-code" id="roomCodeDisplay"></div>
+            <p class="label">Players</p>
+            <ul class="player-list" id="playerList"></ul>
+            <p class="label">Chat</p>
+            <div class="chat-messages" id="chatMessages">
+                <p class="typing" id="typing">user is typing .....</p>
+            </div>
+            <div class="chat-input-row">
+                <input type="text" id="chatInput" placeholder="Say something...">
+                <button id="btnSend">Send</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Socket.IO client (auto-served by the server) -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // ── Connect to the server ──
+        const socket = io();
+
+        // ── DOM refs ──
+        const screenName = document.getElementById('screenName');
+        const screenLobby = document.getElementById('screenLobby');
+        const inputName = document.getElementById('inputName');
+        const inputCode = document.getElementById('inputCode');
+        const btnCreate = document.getElementById('btnCreate');
+        const btnJoin = document.getElementById('btnJoin');
+        const errorMsg = document.getElementById('errorMsg');
+        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+        const playerList = document.getElementById('playerList');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const btnSend = document.getElementById('btnSend');
+
+        // ── Helpers ──
+        function showScreen(screen) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            screen.classList.add('active');
+        }
+
+        function renderPlayers(players) {
+            playerList.innerHTML = players.map(p =>
+                `<li ${p.id === socket.id&&'class="you"'}><span class="player-dot"></span> ${p.name}</li>`
+            ).join('');
+        }
+
+        function addChatMsg(html) {
+            chatMessages.innerHTML += `<div class="chat-msg">${html}</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function displayTyping(playerName) {
+            const typingMsg = document.getElementById('typing')
+
+            typingMsg.innerHTML = `${playerName} is typing...`
+            typingMsg.classList.add("show");
+
+            console.log("typing..")
+
+            setTimeout(() => {
+                typingMsg.classList.remove("show")
+            }, 3000)
+        }
+
+        // ── Create Room ──
+        btnCreate.addEventListener('click', () => {
+            const name = inputName.value.trim();
+            if (!name) return errorMsg.textContent = 'Enter your name first!';
+            errorMsg.textContent = '';
+
+            socket.emit('createRoom', name, (res) => {
+                if (res.success) {
+                    roomCodeDisplay.textContent = res.code;
+                    renderPlayers(res.players);
+                    addChatMsg('<span class="system">Room created. Share the code!</span>');
+                    showScreen(screenLobby);
+                }
+            });
+        });
+
+        // ── Join Room ──
+        btnJoin.addEventListener('click', () => {
+            const name = inputName.value.trim();
+            const code = inputCode.value.trim().toUpperCase();
+            if (!name) return errorMsg.textContent = 'Enter your name first!';
+            if (!code || code.length !== 4) return errorMsg.textContent = 'Enter a 4-letter room code.';
+            errorMsg.textContent = '';
+
+            socket.emit('joinRoom', { code, playerName: name }, (res) => {
+                if (res.success) {
+                    roomCodeDisplay.textContent = res.code;
+                    renderPlayers(res.players);
+                    addChatMsg('<span class="system">You joined the room!</span>');
+                    showScreen(screenLobby);
+                } else {
+                    errorMsg.textContent = res.error;
+                }
+            });
+        });
+
+        // ── Receive events ──
+        socket.on('playerJoined', (data) => {
+            renderPlayers(data.players);
+            addChatMsg(`<span class="system">${data.newPlayer} joined</span>`);
+        });
+
+        socket.on('playerLeft', (data) => {
+            renderPlayers(data.players);
+            addChatMsg(`<span class="system">${data.leftPlayer} left</span>`);
+        });
+
+        socket.on('chatMessage', (data) => {
+            addChatMsg(`<span class="author">${data.from}:</span> ${data.message}`);
+        });
+
+        socket.on('typing', (data) => {
+            displayTyping(data.from)
+        })
+
+        // ── Send chat ──
+        function sendChat() {
+            const msg = chatInput.value.trim();
+            if (!msg) return;
+            socket.emit('chatMessage', msg);
+            chatInput.value = '';
+        }
+
+        btnSend.addEventListener('click', sendChat);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendChat();
+            if (e.key.length === 1) socket.emit('typing');
+        });
+
+
+
+        // ── Allow Enter to submit name screen ──
+        inputName.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') btnCreate.click();
+        });
+    </script>
+</body>
+
+</html>
