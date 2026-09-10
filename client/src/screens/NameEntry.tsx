@@ -18,22 +18,14 @@ function NameEntry({ onJoined }: NameEntryProps) {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const codeInputRef = useRef<HTMLInputElement>(null);
 
-  const createRoomResult = useCallback((response: RoomResponse) => {
+  const handleRoomResponse = useCallback((response: RoomResponse) => {
 
     if (response.success) {
       onJoined({ code: response.code, players: response.players })
     } else {
       toast.error(response.error ?? "Something went wrong trying to create room")
     }
-  }, [])
-
-  const joinRoomResult = useCallback((response: RoomResponse) => {
-    if (response.success) {
-      onJoined({ code: response.code, players: response.players })
-    } else {
-      toast.error(response.error ?? "Something went wrong trying to join room")
-    }
-  }, [])
+  }, [onJoined])
 
   function createRoom() {
     if (!name) {
@@ -41,7 +33,7 @@ function NameEntry({ onJoined }: NameEntryProps) {
       setError({ type: "name", message: "You need to provide a name" })
       return;
     }
-    socket.emit("createRoom", name, createRoomResult)
+    socket.emit("createRoom", name, handleRoomResponse)
     setError(null)
   }
 
@@ -56,7 +48,7 @@ function NameEntry({ onJoined }: NameEntryProps) {
       setError({ type: "code", message: "Room code must be 4 characters" });
       return;
     }
-    socket.emit("joinRoom", { code, playerName: name }, joinRoomResult);
+    socket.emit("joinRoom", { code, playerName: name }, handleRoomResponse);
     setError(null)
 
   }

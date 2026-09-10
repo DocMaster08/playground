@@ -1,14 +1,19 @@
 import { Copy } from "lucide-react";
-import { Player } from "../types";
-import { useState } from "react";
+import { GameView, Player } from "../types";
+import { useCallback, useEffect, useState } from "react";
 import Chat from "../components/Chat";
 import socket from "../socket";
+import { toast } from "sonner";
 
 interface LobbyProps {
   code: string;
   players: Player[];
+  onGameStart: (gameState: GameView) => void
 }
-function Lobby({ code, players }: LobbyProps) {
+
+type StartGameResponse = { success: true } | { success: false, error: string }
+
+function Lobby({ code, players, onGameStart }: LobbyProps) {
   const [isCopied, setIsCopied] = useState(false)
 
   async function copyRoomCode() {
@@ -22,6 +27,23 @@ function Lobby({ code, players }: LobbyProps) {
     }
   }
 
+  const handleStartGameResponse = useCallback((response: StartGameResponse) => {
+    if (!response.success) {
+      toast.error(response.error ?? "Something went wrong trying to start game")
+    }
+  }, [])
+
+  function startGame() {
+    socket.emit("startGame", handleStartGameResponse)
+  }
+
+  useEffect(() => {
+
+    socket.on('gameStateUpdate', onGameStart)
+
+    return () => { socket.off('gameStateUpdate', onGameStart) }
+  }, [onGameStart])
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center gap-4 text-foreground">
       <div className="flex flex-col border rounded p-5 gap-3 bg-card w-1/2 max-w-xl">
@@ -31,7 +53,7 @@ function Lobby({ code, players }: LobbyProps) {
             Code:
             <button onClick={copyRoomCode} className={`font-bold text-lg p-1 cursor-pointer ml-1 ${isCopied ? 'text-green-400' : 'text-primary hover:bg-primary hover:text-primary-foreground'}`}>
               {isCopied ?
-                <p className="pr-1">Copied!</p>
+                <span className="pr-1">Copied!</span>
                 :
                 <>
                   <Copy size={18} className="inline mr-2 mb-1" />
@@ -45,14 +67,14 @@ function Lobby({ code, players }: LobbyProps) {
         <div className="flex flex-col gap-2">
           {players.map(player =>
             <div key={player.id} className="flex gap-2 items-center ">
-              {player.id === socket.id && <img src="hand-right.png" className="w-8"/>}
+              {player.id === socket.id && <img src="hand-right.png" className="w-8" />}
               <p className={`flex-1 text-secondary-foreground p-1 px-4 shadow-xs ${player.id === socket.id ? 'bg-amber-300' : 'bg-secondary/80'}`}>
                 {player.name}
               </p>
             </div>
           )}
         </div>
-        <button className="bg-primary text-primary-foreground  p-1">Start Game</button>
+        <button onClick={startGame} disabled={players.length < 2} className="bg-primary text-primary-foreground p-1 cursor-pointer disabled:bg-primary/80 disabled:cursor-not-allowed">Start Game</button>
 
       </div>
       <div className="flex flex-col border rounded p-5 gap-3 bg-card w-1/2 max-w-xl">
