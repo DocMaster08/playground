@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import socket from "../socket"
 import { toast } from "sonner"
 import { Player } from "../types";
@@ -12,8 +12,11 @@ type RoomResponse =
   | { success: false; error: string };
 
 function NameEntry({ onJoined }: NameEntryProps) {
-  const [name, setName] = useState("")
-  const [code, setCode] = useState("")
+  const [name, setName] = useState<string>("")
+  const [code, setCode] = useState<string>("")
+  const [error, setError] = useState<{ type: string, message: string } | null>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const codeInputRef = useRef<HTMLInputElement>(null);
 
   const createRoomResult = useCallback((response: RoomResponse) => {
 
@@ -33,26 +36,43 @@ function NameEntry({ onJoined }: NameEntryProps) {
   }, [])
 
   function createRoom() {
-    if (!name) return toast.error("You need to put a name");
+    if (!name) {
+      nameInputRef.current?.focus();
+      setError({ type: "name", message: "You need to provide a name" })
+      return;
+    }
     socket.emit("createRoom", name, createRoomResult)
+    setError(null)
   }
 
   function joinRoom() {
-    if (!name) return toast.error("You need to put a name");
-    if (code.length !== 4) return toast.error("Room code must be 4 characters");
-    socket.emit("joinRoom", { code, playerName: name }, joinRoomResult)
+    if (!name) {
+      nameInputRef.current?.focus();
+      setError({ type: "name", message: "You need to provide a name" });
+      return;
+    }
+    if (code.length !== 4) {
+      codeInputRef.current?.focus();
+      setError({ type: "code", message: "Room code must be 4 characters" });
+      return;
+    }
+    socket.emit("joinRoom", { code, playerName: name }, joinRoomResult);
+    setError(null)
+
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <div className="flex flex-col border rounded-md p-5 gap-3 bg-base">
+    <div className="flex justify-center items-center min-h-screen text-foreground">
+      <div className="flex flex-col border rounded p-5 gap-3 w-1/2 max-w-xl bg-card">
         <p>Username</p>
-        <input value={name} onChange={(e) => setName(e.target.value)} className="p-2 bg-accent rounded text-accent-foreground placeholder:text-accent-foreground/80 border border-black" placeholder="Username" />
-        <button onClick={createRoom} className="bg-primary p-1 rounded text-primary-foreground  border border-black">Create Room</button>
-        <p className="text-gray-500 text-center px-20">———————— OR ———————— </p>
+        <input ref={nameInputRef} value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (code.length===4?joinRoom():createRoom())} className="p-2 placeholder:text-foreground/80 border shadow-xs" placeholder="Username" />
+        {error && error.type === "name" && <p className="text-red-500">{error.message}</p>}
+        <button onClick={createRoom} className="bg-primary p-1 text-primary-foreground">Create Room</button>
+        <p className="text-gray-500 text-center font-mono">———————— OR ———————— </p>
         <p>Enter room code</p>
-        <input value={code.toUpperCase()} onChange={(e) => setCode(e.target.value)} className="p-2 bg-accent rounded text-accent-foreground placeholder:text-accent-foreground/80  border border-black" placeholder="Ex: ABCD" />
-        <button onClick={joinRoom} className="bg-secondary text-secondary-foreground p-1 rounded  border border-black">Join</button>
+        <input ref={codeInputRef} value={code.toUpperCase()} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (joinRoom())} className="p-2 placeholder:text-foreground/80 border shadow-xs" placeholder="Ex: ABCD" />
+        {error && error.type === "code" && <p className="text-red-500">{error.message}</p>}
+        <button onClick={joinRoom} className="bg-secondary text-secondary-foreground p-1">Join</button>
       </div>
     </div>
   )

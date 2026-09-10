@@ -27,3 +27,10 @@ export interface GameView {
   winner: string | null;        // socket ID of winner, or null
   direction: 1 | -1;            // 1 = clockwise, -1 = counter
 }
+
+export interface ChatMessage {
+  id?: string;
+  from: string;
+  message: string;
+  timestamp?: number | Date;
+}

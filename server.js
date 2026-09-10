@@ -161,6 +161,7 @@ io.on('connection', (socket) => {
         if (!room) return;
 
         io.to(room).emit('chatMessage', {
+            id: socket.id,
             from: socket.data.name,
             message,
             timestamp: Date.now(),
@@ -171,7 +172,18 @@ io.on('connection', (socket) => {
         const room = socket.data.room;
         if (!room) return;
 
-        socket.to(room).emit('typing', {
+        io.to(room).emit('typing', {
+            id: socket.id,
+            from: socket.data.name
+        })
+    })
+
+    socket.on('stopTyping', () => {
+        const room = socket.data.room;
+        if (!room) return;
+
+        io.to(room).emit('stopTyping', {
+            id: socket.id,
             from: socket.data.name
         })
     })
