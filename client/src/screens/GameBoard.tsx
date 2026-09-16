@@ -21,18 +21,21 @@ const placements: Record<number, number[]> = {
 
 function GameBoard({ gameState }: GameBoardProps) {
   const myPlayerIndex = gameState.players.findIndex((player) => player.id === socket.id)
-  const ordered_players = [...gameState.players.slice(myPlayerIndex),
-  ...gameState.players.slice(0, myPlayerIndex)
+  const ordered_players = [
+    ...gameState.players.slice(myPlayerIndex),
+    ...gameState.players.slice(0, myPlayerIndex)
   ]
+
   return (
-    <div>
+    <div className="w-full h-screen overflow-hidden bg-lime-300 relative select-none ">
       <div>
-        {ordered_players.map((player, i) => <PlayerHand key={player.id} hand={i === 0 ? gameState.hand : undefined} cardCount={player.cardCount} name={player.name} placement={placements[ordered_players.length]?.[i] ?? 0} />)}
+        {ordered_players.map((player, i) => <PlayerHand key={player.id} hand={i === 0 ? gameState.hand : undefined} cardCount={player.cardCount} name={player.name} placement={placements[ordered_players.length]?.[i] ?? 0} yourTurn={player.isCurrentTurn} />)}
       </div>
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-4">
         <Deck count={gameState.deckCount > 10 ? 10 : gameState.deckCount} />
         <DiscardPile topCard={gameState.topCard} />
       </div>
+
     </div>
   )
 }

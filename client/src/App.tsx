@@ -23,13 +23,18 @@ export default function App() {
       toast.info(`${data.leftPlayer} left the room`);
     }
 
+    function handleGameStateUpdate(gameState: GameView){
+      setGameState(gameState)
+    }
+
     socket.on("playerJoined", handlePlayerJoined);
     socket.on("playerLeft", handlePlayerLeft);
-
+    socket.on("gameStateUpdate", handleGameStateUpdate);
 
     return () => {
       socket.off("playerJoined", handlePlayerJoined);
       socket.off("playerLeft", handlePlayerLeft);
+      socket.off("gameStateUpdate", handleGameStateUpdate);
     };
   }, []);
 
