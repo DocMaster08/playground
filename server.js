@@ -99,7 +99,7 @@ io.on('connection', (socket) => {
 
         if (!room) return callback({ success: false, error: "Room not found" });
         if (room.players.length < 2) return callback({ success: false, error: "Need at least 2 players" });
-        if (room.gameState && room.gameState === "PLAYING") return callback({ success: false, error: "Game already started" });
+        if (room.gameState && room.gameState.phase === "PLAYING") return callback({ success: false, error: "Game already started" });
 
         // init game state
         const playerIds = room.players.map(p => p.id);
@@ -108,6 +108,19 @@ io.on('connection', (socket) => {
         console.log(`🎴 Game started in room ${code}`);
         broadcastGameState(code);
         callback({ success: true });
+    })
+
+    // dev quick start for testing
+    socket.on('quickStart', () => {
+        const code = generateRoomCode()
+        const playerIds = [socket.id, "testid123", "testid234", "test1", "test2", "1", "2", "3"];
+        rooms[code] = { players: playerIds.map(id => {return { id, name: id===socket.id?"Doc":"Opponent_Bot" }}), gameState: game.initGame(playerIds) }
+        socket.join(code);
+        socket.data.room = code
+        socket.data.name = "Doc"
+
+        console.log(`🎴 Test Game started in room ${code}`);
+        broadcastGameState(code);
     })
 
     // Play a card

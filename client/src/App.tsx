@@ -10,7 +10,7 @@ export default function App() {
   const [screen, setScreen] = useState<'name' | 'lobby' | 'game'>("name");
   const [roomCode, setRoomCode] = useState('')
   const [players, setPlayers] = useState<Player[]>([])
-  const [gameState, setGameState] = useState<GameView|null>(null)
+  const [gameState, setGameState] = useState<GameView | null>(null)
 
   useEffect(() => {
     function handlePlayerJoined(data: { players: Player[]; newPlayer: string }) {
@@ -25,7 +25,7 @@ export default function App() {
 
     socket.on("playerJoined", handlePlayerJoined);
     socket.on("playerLeft", handlePlayerLeft);
-    
+
 
     return () => {
       socket.off("playerJoined", handlePlayerJoined);
@@ -40,11 +40,16 @@ export default function App() {
         setScreen("lobby");
         setRoomCode(code);
         setPlayers(players);
+      }} onQuickStart={(gameState) => {
+        setScreen("game")
+        setGameState(gameState)
       }} />}
+
       {screen === "lobby" && <Lobby code={roomCode} players={players} onGameStart={(gameState) => {
         setScreen("game")
         setGameState(gameState)
-        }} />}
+      }} />}
+      
       {screen === "game" && gameState && <GameBoard gameState={gameState} />}
     </div>
   );
