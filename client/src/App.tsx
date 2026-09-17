@@ -23,40 +23,68 @@ export default function App() {
       toast.info(`${data.leftPlayer} left the room`);
     }
 
-    function handleGameStateUpdate(gameState: GameView){
-      setGameState(gameState)
+    function handleGameStateUpdate(gameState: GameView) {
+      setGameState(gameState);
+    }
+
+    function handleReturnToLobby(data: { players: Player[] }) {
+      setPlayers(data.players);
+      setGameState(null);
+      setScreen("lobby");
+      toast.info("Returned to lobby for a new game");
     }
 
     socket.on("playerJoined", handlePlayerJoined);
     socket.on("playerLeft", handlePlayerLeft);
     socket.on("gameStateUpdate", handleGameStateUpdate);
+    socket.on("returnToLobby", handleReturnToLobby);
 
     return () => {
       socket.off("playerJoined", handlePlayerJoined);
       socket.off("playerLeft", handlePlayerLeft);
       socket.off("gameStateUpdate", handleGameStateUpdate);
+      socket.off("returnToLobby", handleReturnToLobby);
     };
   }, []);
+
+  function handleLeave() {
+    setGameState(null);
+    setScreen("name");
+  }
 
   return (
     <div className="bg-background">
       <Toaster />
-      {screen === "name" && <NameEntry onJoined={({ code, players }) => {
-        setScreen("lobby");
-        setRoomCode(code);
-        setPlayers(players);
-      }} onQuickStart={(gameState) => {
-        setScreen("game")
-        setGameState(gameState)
-      }} />}
+      {screen === "name" && (
+        <NameEntry
+          onJoined={({ code, players }) => {
+            setScreen("lobby");
+            setRoomCode(code);
+            setPlayers(players);
+          }}
+          onQuickStart={(gameState) => {
+            setScreen("game");
+            setGameState(gameState);
+          }}
+        />
+      )}
 
-      {screen === "lobby" && <Lobby code={roomCode} players={players} onGameStart={(gameState) => {
-        setScreen("game")
-        setGameState(gameState)
-      }} />}
-      
-      {screen === "game" && gameState && <GameBoard gameState={gameState} />}
+      {screen === "lobby" && (
+        <Lobby
+          code={roomCode}
+          players={players}
+          onGameStart={(gameState) => {
+            setScreen("game");
+            setGameState(gameState);
+          }}
+        />
+      )}
+
+      {screen === "game" && gameState && (
+        <GameBoard gameState={gameState} onLeave={handleLeave} />
+      )}
     </div>
   );
 }
+
 
